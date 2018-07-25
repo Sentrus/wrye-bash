@@ -36,6 +36,9 @@ from ...brec import MelRecord, MelStructs, MelGroups, MelStruct, FID, \
     MreHeaderBase, MelUnicode
 from ...exception import ModError, ModSizeError
 
+# Those are unused here, but need be in this file as are accessed via it
+from ..fallout3.records import MreNpc
+
 from_iterable = itertools.chain.from_iterable
 
 # These eye variables have been refactored from the Wrye Flash version of bosh.py.

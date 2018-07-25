@@ -25,12 +25,57 @@
 imported from skyrim, but only after setting MelModel to the SSE format."""
 from ... import brec
 from ...bass import null1, null2, null3, null4
-from ...bolt import Flags
+from ...bolt import Flags, struct_pack, encode
 from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
     FID, MelString, MelSet, MelFid, MelOptStruct, MelFids, MelBase, MelGroup, \
     MelStructA, MelLString, MelCountedFidList
 from ...exception import ModSizeError
 # Set brec.MelModel to the skyrimse one - do not import from skyrim.records yet
+
+class MelMODS(MelBase): # copy pasted from game.skyrim.records.MelMODS
+    """MODS/MO2S/etc/DMDS subrecord"""
+    def hasFids(self,formElements):
+        """Include self if has fids."""
+        formElements.add(self)
+
+    def setDefault(self,record):
+        """Sets default value for record instance."""
+        record.__setattr__(self.attr,None)
+
+    def loadData(self, record, ins, sub_type, size_, readId):
+        """Reads data from ins into record attribute."""
+        insUnpack = ins.unpack
+        count, = insUnpack('I',4,readId)
+        data = []
+        dataAppend = data.append
+        for x in xrange(count):
+            string = ins.readString32(readId)
+            fid = ins.unpackRef()
+            index, = ins.unpack('I',4,readId)
+            dataAppend((string,fid,index))
+        record.__setattr__(self.attr,data)
+
+    def dumpData(self,record,out):
+        """Dumps data from record to outstream."""
+        data = record.__getattribute__(self.attr)
+        if data is not None:
+            data = record.__getattribute__(self.attr)
+            outData = struct_pack('I', len(data))
+            for (string,fid,index) in data:
+                outData += struct_pack('I', len(string))
+                outData += encode(string)
+                outData += struct_pack('=2I', fid, index)
+            out.packSub(self.subType,outData)
+
+    def mapFids(self,record,function,save=False):
+        """Applies function to fids.  If save is true, then fid is set
+           to result of function."""
+        attr = self.attr
+        data = record.__getattribute__(attr)
+        if data is not None:
+            data = [(string,function(fid),index) for (string,fid,index) in record.__getattribute__(attr)]
+            if save: record.__setattr__(attr,data)
+
 if brec.MelModel is None:
     class _MelModel(MelGroup):
         """Represents a model record."""
@@ -70,7 +115,9 @@ if brec.MelModel is None:
     brec.MelModel = _MelModel
 from ...brec import MelModel
 # Now we can import from parent game records file
-from ..skyrim.records import MelMODS, MelBounds, MelDestructible, MelVmad
+from ..skyrim.records import MelBounds, MelDestructible, MelVmad
+# Those are unused here, but need be in this file as are accessed via it
+from ..skyrim.records import MreHeader, MreNpc, MreGmst
 
 #------------------------------------------------------------------------------
 # Updated for SSE -------------------------------------------------------------
