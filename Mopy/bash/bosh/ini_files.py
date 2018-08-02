@@ -44,6 +44,7 @@ class IniFile(AFile):
     reSection = re.compile(ur'^\[\s*(.+?)\s*\]$',re.U)
     reSetting = re.compile(ur'(.+?)\s*=(.*)',re.U)
     formatRes = (reSetting, reSection)
+    out_encoding = 'cp1252'
     __empty = LowerDict()
     defaultSection = u'General'
 
@@ -249,7 +250,7 @@ class IniFile(AFile):
         return lines
 
     def _open_for_writing(self, filepath): # preserve windows EOL
-        return codecs.getwriter(self.encoding)(open(filepath, 'w'))
+        return codecs.getwriter(self.out_encoding)(open(filepath, 'w'))
 
     def ask_create_target_ini(self, msg=_(
             u'The target ini must exist to apply a tweak to it.')):
@@ -267,47 +268,43 @@ class IniFile(AFile):
         reSetting = self.reSetting
         #--Read init, write temp
         section = sectionSettings = None
-        with self.abs_path.open('r') as iniFile:
-            with self._open_for_writing(self.abs_path.temp.s) as tmpFile:
-                tmpFileWrite = tmpFile.write
-                def _add_remaining_new_items(section_):
-                    if section_ and ini_settings.get(section_, {}):
-                        for sett, val in ini_settings[section_].iteritems():
-                            tmpFileWrite(u'%s=%s\n' % (sett, val))
-                        del ini_settings[section_]
-                        tmpFileWrite(u'\n')
-                for line in iniFile:
-                    try:
-                        line = unicode(line,self.encoding)
-                    except UnicodeDecodeError:
-                        line = unicode(line,'cp1252')
-                    stripped = reComment.sub(u'',line).strip()
-                    maSection = reSection.match(stripped)
-                    if maSection:
-                        # 'new' entries still to be added from previous section
-                        _add_remaining_new_items(section)
-                        section = maSection.group(1) # entering new section
-                        sectionSettings = ini_settings.get(section,{})
-                    else:
-                        match = reSetting.match(stripped) or reDeleted.match(
-                            line) # note we run maDeleted on LINE
-                        if match:
-                            setting = match.group(1)
-                            if sectionSettings and setting in sectionSettings:
-                                value = sectionSettings[setting]
-                                line = u'%s=%s\n' % (setting, value)
-                                del sectionSettings[setting]
-                            elif section in deleted_settings and setting in deleted_settings[section]:
-                                line = u';-'+line
-                    tmpFileWrite(line)
-                # This will occur for the last INI section in the ini file
-                _add_remaining_new_items(section)
-                # Add remaining new entries
-                for section in set(ini_settings): # _add_remaining_new_items may modify ini_settings
-                    if ini_settings[section]:
-                        tmpFileWrite(u'\n')
-                        tmpFileWrite(u'[%s]\n' % section)
-                        _add_remaining_new_items(section)
+        ini_lines = self.read_ini_lines(as_unicode=True)
+        with self._open_for_writing(self.abs_path.temp.s) as tmpFile:
+            tmpFileWrite = tmpFile.write
+            def _add_remaining_new_items(section_):
+                if section_ and ini_settings.get(section_, {}):
+                    for sett, val in ini_settings[section_].iteritems():
+                        tmpFileWrite(u'%s=%s\n' % (sett, val))
+                    del ini_settings[section_]
+                    tmpFileWrite(u'\n')
+            for line in ini_lines:
+                stripped = reComment.sub(u'', line).strip()
+                maSection = reSection.match(stripped)
+                if maSection:
+                    # 'new' entries still to be added from previous section
+                    _add_remaining_new_items(section)
+                    section = maSection.group(1)  # entering new section
+                    sectionSettings = ini_settings.get(section, {})
+                else:
+                    match = reSetting.match(stripped) or reDeleted.match(
+                        line)  # note we run maDeleted on LINE
+                    if match:
+                        setting = match.group(1)
+                        if sectionSettings and setting in sectionSettings:
+                            value = sectionSettings[setting]
+                            line = u'%s=%s\n' % (setting, value)
+                            del sectionSettings[setting]
+                        elif section in deleted_settings and setting in deleted_settings[section]:
+                            line = u';-' + line
+                tmpFileWrite(line)
+            # This will occur for the last INI section in the ini file
+            _add_remaining_new_items(section)
+            # Add remaining new entries
+            for section in set(ini_settings):  # _add_remaining_new_items may modify ini_settings
+                if ini_settings[section]:
+                    tmpFileWrite(u'\n')
+                    tmpFileWrite(u'[%s]\n' % section)
+                    _add_remaining_new_items(section)
         #--Done
         self.abs_path.untemp()
 
@@ -386,6 +383,7 @@ class OBSEIniFile(IniFile):
     reSet     = re.compile(ur'\s*set\s+(.+?)\s+to\s+(.*)', re.I|re.U)
     reSetGS   = re.compile(ur'\s*setGS\s+(.+?)\s+(.*)', re.I|re.U)
     reSetNGS   = re.compile(ur'\s*SetNumericGameSetting\s+(.+?)\s+(.*)', re.I|re.U)
+    out_encoding = 'utf-8'
     formatRes = (reSet, reSetGS, reSetNGS)
     defaultSection = u'' # Change the default section to something that
     # can't occur in a normal ini
@@ -480,38 +478,38 @@ class OBSEIniFile(IniFile):
         deleted_settings = _to_lower(deleted_settings)
         reDeleted = self.reDeleted
         reComment = self.reComment
-        with self.abs_path.open('r') as iniFile:
-            with self.abs_path.temp.open('w') as tmpFile:
-                # Modify/Delete existing lines
-                for line in iniFile:
-                    # Test if line is currently deleted
-                    maDeleted = reDeleted.match(line)
-                    if maDeleted: stripped = maDeleted.group(1)
-                    else: stripped = line
-                    # Test what kind of line it is - 'set' or 'setGS' or 'SetNumericGameSetting'
-                    stripped = reComment.sub(u'',stripped).strip()
-                    match, section_key, format_string = self._parse_obse_line(
-                        stripped)
-                    if match:
-                        setting = match.group(1)
-                        # Apply the modification
-                        if section_key in ini_settings and setting in ini_settings[section_key]:
-                            # Un-delete/modify it
-                            value = ini_settings[section_key][setting]
-                            del ini_settings[section_key][setting]
-                            if isinstance(value,basestring) and value[-1:] == u'\n':
-                                line = value
-                            else:
-                                line = format_string % (setting,value)
-                        elif not maDeleted and section_key in deleted_settings and setting in deleted_settings[section_key]:
-                            # It isn't deleted, but we want it deleted
-                            line = u';-'+line
-                    tmpFile.write(line)
-                # Add new lines
-                for sectionKey in ini_settings:
-                    section = ini_settings[sectionKey]
-                    for setting in section:
-                        tmpFile.write(section[setting])
+        ini_lines = self.read_ini_lines(as_unicode=True)
+        with self._open_for_writing(self.abs_path.temp.s) as tmpFile:
+            # Modify/Delete existing lines
+            for line in ini_lines:
+                # Test if line is currently deleted
+                maDeleted = reDeleted.match(line)
+                if maDeleted: stripped = maDeleted.group(1)
+                else: stripped = line
+                # Test what kind of line it is - 'set' or 'setGS' or 'SetNumericGameSetting'
+                stripped = reComment.sub(u'', stripped).strip()
+                match, section_key, format_string = self._parse_obse_line(
+                    stripped)
+                if match:
+                    setting = match.group(1)
+                    # Apply the modification
+                    if section_key in ini_settings and setting in ini_settings[section_key]:
+                        # Un-delete/modify it
+                        value = ini_settings[section_key][setting]
+                        del ini_settings[section_key][setting]
+                        if isinstance(value, basestring) and value[-1:] == u'\n':
+                            line = value
+                        else:
+                            line = format_string % (setting, value)
+                    elif not maDeleted and section_key in deleted_settings and setting in deleted_settings[section_key]:
+                        # It isn't deleted, but we want it deleted
+                        line = u';-' + line
+                tmpFile.write(line)
+            # Add new lines
+            for sectionKey in ini_settings:
+                section = ini_settings[sectionKey]
+                for setting in section:
+                    tmpFile.write(section[setting])
         self.abs_path.untemp()
 
     def applyTweakFile(self, tweak_lines):
