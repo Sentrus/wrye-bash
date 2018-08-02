@@ -25,11 +25,13 @@ import codecs
 import re
 import time
 from collections import OrderedDict
+from functools import partial
 
 from . import AFile
 from .. import env, bush, balt
 from ..bass import dirs
-from ..bolt import LowerDict, CIstr, deprint, GPath, DefaultLowerDict
+from ..bolt import LowerDict, CIstr, deprint, GPath, DefaultLowerDict, decode, \
+    getbestencoding
 from ..exception import AbstractError, CancelError, SkipError
 
 def _to_lower(ini_settings): # transform dict of dict to LowerDict of LowerDict
@@ -42,12 +44,12 @@ class IniFile(AFile):
     reSection = re.compile(ur'^\[\s*(.+?)\s*\]$',re.U)
     reSetting = re.compile(ur'(.+?)\s*=(.*)',re.U)
     formatRes = (reSetting, reSection)
-    encoding = 'utf-8'
     __empty = LowerDict()
     defaultSection = u'General'
 
-    def __init__(self, fullpath):
+    def __init__(self, fullpath, ini_encoding):
         super(IniFile, self).__init__(fullpath)
+        self.ini_encoding = ini_encoding
         self.isCorrupted = u''
         #--Settings cache
         self._ci_settings_cache_linenum = self.__empty
@@ -58,14 +60,17 @@ class IniFile(AFile):
     @classmethod
     def formatMatch(cls, path):
         count = 0
-        with path.open('r') as ini_file:
-            for line in ini_file:
-                stripped = cls.reComment.sub(u'',line).strip()
-                for regex in cls.formatRes:
-                    if regex.match(stripped):
-                        count += 1
-                        break
-        return count
+        with open(u'%s' % path, 'rb') as ini_file:
+            content = ini_file.read()
+        detected_encoding, _confidence = getbestencoding(content)
+        decoded_content = decode(content, detected_encoding)
+        for line in decoded_content.splitlines():
+            stripped = cls.reComment.sub(u'',line).strip()
+            for regex in cls.formatRes:
+                if regex.match(stripped):
+                    count += 1
+                    break
+        return count, detected_encoding
 
     def getSetting(self, section, key, default):
         """Gets a single setting from the file."""
@@ -112,8 +117,7 @@ class IniFile(AFile):
             return True
         return False
 
-    @classmethod
-    def _get_ci_settings(cls, tweakPath):
+    def _get_ci_settings(self, tweakPath):
         """Get settings as defaultdict[dict] of section -> (setting -> value).
         Keys in both levels are case insensitive. Values are stripped of
         whitespace. "deleted settings" keep line number instead of value (?)
@@ -122,22 +126,18 @@ class IniFile(AFile):
         """
         ci_settings = DefaultLowerDict(LowerDict)
         ci_deleted_settings = DefaultLowerDict(LowerDict)
-        default_section = cls.defaultSection
-        encoding = cls.encoding
+        default_section = self.__class__.defaultSection
         isCorrupted = u''
-        reComment = cls.reComment
-        reSection = cls.reSection
-        reDeleted = cls.reDeletedSetting
-        reSetting = cls.reSetting
+        reComment = self.__class__.reComment
+        reSection = self.__class__.reSection
+        reDeleted = self.__class__.reDeletedSetting
+        reSetting = self.__class__.reSetting
         #--Read ini file
         with tweakPath.open('r') as iniFile:
             sectionSettings = None
             section = None
             for i,line in enumerate(iniFile.readlines()):
-                try:
-                    line = unicode(line,encoding)
-                except UnicodeDecodeError:
-                    line = unicode(line,'cp1252')
+                line = unicode(line, self.ini_encoding)
                 maDeleted = reDeleted.match(line)
                 stripped = reComment.sub(u'',line).strip()
                 maSection = reSection.match(stripped)
@@ -158,16 +158,28 @@ class IniFile(AFile):
                     ci_deleted_settings[section][maDeleted.group(1)] = i
         return ci_settings, ci_deleted_settings, isCorrupted
 
-    def read_ini_lines(self):
+    def read_ini_lines(self, as_unicode=True):
+        """ :rtype: str|list[unicode] """
         try: #TODO(ut) parse get_ci_settings instead-see constructing default tweak
-            with self.abs_path.open('r') as f:
-                return f.readlines()
+            with self.abs_path.open('rb') as f:
+                content = f.read()
+            if not as_unicode: return content
+            decoded = unicode(content, self.ini_encoding)
+            # for j,li in enumerate(content.splitlines()):
+            #     try:
+            #         decoded.append(unicode(li, self.ini_encoding))
+            #     except UnicodeDecodeError:
+            #         print (j, repr(li))
+            # return map(partial(unicode, encoding=self.ini_encoding), lines)
+            return decoded.splitlines(True) # keepends=True
+        except UnicodeDecodeError:
+            deprint(u'ini_encoding does not do the trick', traceback=True)
         except OSError:
             deprint(u'Error reading ini file %s' % self.abs_path,
                     traceback=True)
-            return []
+        return []
 
-    def get_lines_infos(self, tweak_lines):
+    def get_lines_infos(self, tweak_file):
         """Analyse the tweak lines based on self settings and type. Return a
         list of line info tuples in this format:
         [(fulltext,section,setting,value,status,ini_line_number, deleted)]
@@ -184,7 +196,6 @@ class IniFile(AFile):
         ini_line_number = line number in the ini that this tweak applies to
         deleted: deleted line (?)"""
         lines = []
-        encoding = 'utf-8'
         ci_settings, ci_deletedSettings = self.get_ci_settings(with_deleted=True)
         reComment = self.reComment
         reSection = self.reSection
@@ -192,11 +203,8 @@ class IniFile(AFile):
         reSetting = self.reSetting
         #--Read ini file
         section = self.__class__.defaultSection
+        tweak_lines = tweak_file.read_ini_lines() # type: list[unicode]
         for i, line in enumerate(tweak_lines):
-            try:
-                line = unicode(line, encoding)
-            except UnicodeDecodeError:
-                line = unicode(line, 'cp1252')
             maDeletedSetting = reDeleted.match(line)
             stripped = reComment.sub(u'', line).strip()
             maSection = reSection.match(stripped)
@@ -306,7 +314,6 @@ class IniFile(AFile):
     def applyTweakFile(self, tweak_lines):
         """Read Ini tweak file and apply its settings to oblivion.ini.
         Note: Will ONLY apply settings that already exist."""
-        encoding = 'utf-8'
         reDeleted = self.reDeletedSetting
         reComment = self.reComment
         reSection = self.reSection
@@ -316,10 +323,6 @@ class IniFile(AFile):
         deleted_settings = DefaultLowerDict(set)
         section = None
         for line in tweak_lines:
-            try:
-                line = unicode(line,encoding)
-            except UnicodeDecodeError:
-                line = unicode(line,'cp1252')
             maDeleted = reDeleted.match(line)
             stripped = reComment.sub(u'',line).strip()
             maSection = reSection.match(stripped)
@@ -362,7 +365,9 @@ class DefaultIniFile(IniFile):
             return self._ci_settings_cache_linenum, self._deleted_cache
         return self._ci_settings_cache_linenum
 
-    def read_ini_lines(self): return self.lines
+    def read_ini_lines(self, as_unicode=True):
+        return '\n'.join(self.lines) if not as_unicode else map(unicode,
+                                                                self.lines)
 
     # Abstract for DefaultIniFile, bit of a smell
     def do_update(self): raise AbstractError
@@ -538,7 +543,6 @@ class OblivionIni(IniFile):
     """Oblivion.ini file."""
     bsaRedirectors = {u'archiveinvalidationinvalidated!.bsa',
                       u'..\\obmm\\bsaredirection.bsa'}
-    encoding = 'cp1252'
     _ini_language = None
 
     def saveSetting(self,section,key,value):
