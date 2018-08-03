@@ -939,8 +939,8 @@ def BestIniFile(abs_ini_path):
     game_ini = get_game_ini(abs_ini_path)
     if game_ini:
         return game_ini
-    INICount, detected_encoding = IniFile.formatMatch(abs_ini_path)
-    OBSECount, detected_encoding = OBSEIniFile.formatMatch(abs_ini_path)
+    INICount, detected_encoding = IniFile.get_ini_type_and_encoding(abs_ini_path)
+    OBSECount, detected_encoding = OBSEIniFile.get_ini_type_and_encoding(abs_ini_path)
     if INICount >= OBSECount:
         return IniFile(abs_ini_path, detected_encoding)
     else:
@@ -1488,8 +1488,8 @@ def ini_info_factory(fullpath, load_cache='Ignored'):
     :param fullpath: fullpath to the ini file to wrap
     :param load_cache: dummy param used in INIInfos#new_info factory call
     :rtype: INIInfo"""
-    INICount, detected_encoding = IniFile.formatMatch(fullpath)
-    OBSECount, detected_encoding = OBSEIniFile.formatMatch(fullpath)
+    INICount, detected_encoding = IniFile.get_ini_type_and_encoding(fullpath)
+    OBSECount, detected_encoding = OBSEIniFile.get_ini_type_and_encoding(fullpath)
     if INICount >= OBSECount:
         return INIInfo(fullpath, detected_encoding)
     else:
@@ -1670,12 +1670,11 @@ class INIInfos(TableFileInfos):
             info.abs_path.start()
             return False
 
-    def _copy_to_new_tweak(self, info, new_tweak): ##: encoding....
-        with open(self.store_dir.join(new_tweak).s, 'w') as ini_file:
+    def _copy_to_new_tweak(self, info, new_tweak):
+        with open(self.store_dir.join(new_tweak).s, 'wb') as ini_file:
             # writelines does not do what you'd expect, would concatenate lines
-            ini_file.write(info.read_ini_lines(as_unicode=False))
-        self.new_info(new_tweak.tail, notify_bain=True)
-        return self[new_tweak.tail]
+            ini_file.write(info.read_ini_content(as_unicode=False))
+        return self.new_info(new_tweak.tail, notify_bain=True)
 
     def duplicate_ini(self, tweak, new_tweak):
         """Duplicate tweak into new_tweak, copying current target settings"""
