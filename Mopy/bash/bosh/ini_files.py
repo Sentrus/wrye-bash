@@ -24,18 +24,36 @@
 import codecs
 import re
 import time
-from collections import OrderedDict
-from functools import partial
+from collections import OrderedDict, defaultdict, Counter
 
 from . import AFile
 from .. import env, bush, balt
 from ..bass import dirs
-from ..bolt import LowerDict, CIstr, deprint, GPath, DefaultLowerDict, decode, \
-    getbestencoding
+from ..bolt import LowerDict, CIstr, deprint, GPath, DefaultLowerDict, \
+    decode, getbestencoding
 from ..exception import AbstractError, CancelError, SkipError
 
 def _to_lower(ini_settings): # transform dict of dict to LowerDict of LowerDict
     return LowerDict((x, LowerDict(y)) for x, y in ini_settings.iteritems())
+
+def get_ini_type_and_encoding(abs_ini_path):
+    with open(u'%s' % abs_ini_path, 'rb') as ini_file:
+        content = ini_file.read()
+    detected_encoding, _confidence = getbestencoding(content)
+    decoded_content = decode(content, detected_encoding)
+    count = defaultdict(int)
+    for line in decoded_content.splitlines():
+        for ini_type in (IniFile, OBSEIniFile):
+            stripped = ini_type.reComment.sub(u'', line).strip()
+            for regex in ini_type.formatRes:
+                if regex.match(stripped):
+                    count[ini_type] += 1
+                    break
+    try:
+        inferred_ini_type = Counter(count).most_common(1)[0][0]
+    except IndexError:
+        inferred_ini_type = IniFile
+    return inferred_ini_type, detected_encoding
 
 class IniFile(AFile):
     """Any old ini file."""
@@ -57,21 +75,6 @@ class IniFile(AFile):
         self._deleted_cache = self.__empty
         self._deleted = False
         self.updated = False # notify iniInfos which should clear this flag
-
-    @classmethod
-    def get_ini_type_and_encoding(cls, path):
-        with open(u'%s' % path, 'rb') as ini_file:
-            content = ini_file.read()
-        detected_encoding, _confidence = getbestencoding(content)
-        decoded_content = decode(content, detected_encoding)
-        count = 0
-        for line in decoded_content.splitlines():
-            stripped = cls.reComment.sub(u'',line).strip()
-            for regex in cls.formatRes:
-                if regex.match(stripped):
-                    count += 1
-                    break
-        return count, detected_encoding
 
     def getSetting(self, section, key, default):
         """Gets a single setting from the file."""
@@ -299,7 +302,7 @@ class IniFile(AFile):
                             del sectionSettings[setting]
                         elif section in deleted_settings and setting in deleted_settings[section]:
                             line = u';-' + line
-                tmpFileWrite(line.rstrip() + u'\n')
+                tmpFileWrite(line.rstrip(u'\n\r') + u'\n')
             # This will occur for the last INI section in the ini file
             _add_remaining_new_items(section)
             # Add remaining new entries
