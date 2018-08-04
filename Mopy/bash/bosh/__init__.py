@@ -1602,6 +1602,9 @@ class INIInfos(TableFileInfos):
                 except UnicodeDecodeError:
                     deprint(u'Failed to read %s' % tweak_path, traceback=True)
                     continue
+                except BoltError as e:
+                    deprint(e.message)
+                    continue
                 _added.add(name)
             self[name] = oldInfo
         _deleted = oldNames - newNames

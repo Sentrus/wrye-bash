@@ -31,7 +31,7 @@ from .. import env, bush, balt
 from ..bass import dirs
 from ..bolt import LowerDict, CIstr, deprint, GPath, DefaultLowerDict, \
     decode, getbestencoding
-from ..exception import AbstractError, CancelError, SkipError
+from ..exception import AbstractError, CancelError, SkipError, BoltError
 
 def _to_lower(ini_settings): # transform dict of dict to LowerDict of LowerDict
     return LowerDict((x, LowerDict(y)) for x, y in ini_settings.iteritems())
@@ -52,7 +52,7 @@ def get_ini_type_and_encoding(abs_ini_path):
     try:
         inferred_ini_type = Counter(count).most_common(1)[0][0]
     except IndexError:
-        inferred_ini_type = IniFile
+        raise BoltError(u'Failed to infer type for %s' % abs_ini_path)
     return inferred_ini_type, detected_encoding
 
 class IniFile(AFile):
