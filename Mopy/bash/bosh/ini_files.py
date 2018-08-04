@@ -165,6 +165,9 @@ class IniFile(AFile):
     def read_ini_content(self, as_unicode=True):
         """Return a list of the decoded lines in the ini file, if as_unicode
         is True, or the raw bytes in the ini file, if as_unicode is False.
+        Note we keep line endings - this is dirty but due to
+        bosh.ini_files.OBSEIniFile#saveSettings accepting whole lines, needs
+        be fixed.
         :rtype: list[unicode]|str"""
         try: #TODO(ut) parse get_ci_settings instead-see constructing default tweak
             with self.abs_path.open('rb') as f:
@@ -181,12 +184,13 @@ class IniFile(AFile):
                     traceback=True)
         return []
 
-    def get_lines_infos(self, tweak_file):
+    def analyse_tweak(self, tweak_file):
         """Analyse the tweak lines based on self settings and type. Return a
         list of line info tuples in this format:
         [(fulltext,section,setting,value,status,ini_line_number, deleted)]
         where:
-        fulltext = full line of text from the ini
+        fulltext = full line of text from the ini with newline characters
+        stripped from the end
         section = the section that is being edited
         setting = the setting that is being edited
         value = the value the setting is being set to
@@ -246,8 +250,8 @@ class IniFile(AFile):
             else:
                 if stripped:
                     status = -10
-            lines.append((line, section, setting, value, status, lineNo,
-                          deleted))
+            lines.append((line.rstrip(u'\n\r'), section, setting, value,
+                          status, lineNo, deleted))
         return lines
 
     def _open_for_writing(self, filepath): # preserve windows EOL
@@ -315,8 +319,8 @@ class IniFile(AFile):
         self.abs_path.untemp()
 
     def applyTweakFile(self, tweak_lines):
-        """Read Ini tweak file and apply its settings to oblivion.ini.
-        Note: Will ONLY apply settings that already exist."""
+        """Read Ini tweak file and apply its settings to self (the target ini).
+        """
         reDeleted = self.reDeletedSetting
         reComment = self.reComment
         reSection = self.reSection
@@ -369,7 +373,11 @@ class DefaultIniFile(IniFile):
         return self._ci_settings_cache_linenum
 
     def read_ini_content(self, as_unicode=True):
-        return map(unicode,self.lines) if as_unicode else '\n'.join(self.lines)
+        """Note as_unicode=True strips line endings as opposed to parent -
+        this is wanted and does not harm in this case. Note also, the binary
+        instantiation of the default ini is with windows EOL."""
+        return map(unicode, self.lines) if as_unicode else '\r\n'.join(
+            self.lines) + '\r\n' # add a newline at the end of the ini
 
     # Abstract for DefaultIniFile, bit of a smell
     def do_update(self): raise AbstractError
@@ -434,7 +442,7 @@ class OBSEIniFile(IniFile):
                         2).strip(), i
         return ini_settings, deleted_settings, False
 
-    def get_lines_infos(self, tweak_file):
+    def analyse_tweak(self, tweak_file):
         lines = []
         ci_settings, deletedSettings = self.get_ci_settings(with_deleted=True)
         reDeleted = self.reDeleted
@@ -477,7 +485,7 @@ class OBSEIniFile(IniFile):
         return lines
 
     def saveSettings(self,ini_settings,deleted_settings={}):
-        """Apply dictionary of settings to ini file, latter must exist!
+        """Apply dictionary of settings to self, latter must exist!
         Values in settings dictionary can be either actual values or
         full ini lines ending in newline char."""
         ini_settings = _to_lower(ini_settings)
@@ -511,7 +519,7 @@ class OBSEIniFile(IniFile):
                     elif not maDeleted and section_key in deleted_settings and setting in deleted_settings[section_key]:
                         # It isn't deleted, but we want it deleted
                         line = u';-' + line
-                tmpFile.write(line.rstrip() + u'\n')
+                tmpFile.write(line.rstrip(u'\n\r') + u'\n')
             # Add new lines
             for sectionKey in ini_settings:
                 section = ini_settings[sectionKey]
