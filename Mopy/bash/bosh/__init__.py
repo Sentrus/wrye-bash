@@ -3104,6 +3104,7 @@ def initDefaultSettings():
     inisettings['ShowModelingToolLaunchers'] = True
     inisettings['ShowAudioToolLaunchers'] = True
     inisettings['7zExtraCompressionArguments'] = u''
+    inisettings['xEditCommandLineArguments'] = u''
     inisettings['AutoItemCheck'] = True
     inisettings['SkipHideConfirmation'] = False
     inisettings['SkipResetTimeNotifications'] = False
