@@ -1517,7 +1517,6 @@ class ItemStats:
 
     def writeToText(self,textPath):
         """Writes stats to specified text file."""
-        class_fid_attr_value = self.class_fid_attr_value
         def getSortedIds(fid_attr_value):
             longids = fid_attr_value.keys()
             longids.sort(key=lambda a: fid_attr_value[a]['eid'].lower())
@@ -1546,7 +1545,7 @@ class ItemStats:
                 csvFormat = csvFormat[1:] #--Chop leading comma
                 out.write(csvFormat.format(values) + u'\n')
             for group,header in bush.game_mod.statsHeaders:
-                fid_attr_value = class_fid_attr_value[group]
+                fid_attr_value = self.class_fid_attr_value[group]
                 if not fid_attr_value: continue
                 attrs = self.class_attrs[group]
                 out.write(header)
@@ -1646,7 +1645,6 @@ class CBash_ItemStats:
 
     def writeToText(self,textPath):
         """Writes stats to specified text file."""
-        class_fid_attr_value = self.class_fid_attr_value
         def getSortedIds(fid_attr_value):
             longids = fid_attr_value.keys()
             longids.sort(key=lambda a: fid_attr_value[a]['eid'])
@@ -1672,7 +1670,7 @@ class CBash_ItemStats:
                 _csvFormat = _csvFormat[1:] #--Chop leading comma
                 out.write(_csvFormat.format(values) + u'\n')
             for group,header in bush.game_mod.statsHeaders:
-                fid_attr_value = class_fid_attr_value[group]
+                fid_attr_value = self.class_fid_attr_value[group]
                 if not fid_attr_value: continue
                 attrs = self.class_attrs[group]
                 out.write(header)
