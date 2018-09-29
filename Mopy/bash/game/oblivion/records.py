@@ -21,8 +21,36 @@
 #  https://github.com/wrye-bash
 #
 # =============================================================================
-
 """This module contains the oblivion record classes. Ripped from oblivion.py"""
+
+# Set brec mod elements to the ones for this game before importing anything else
+import brec
+
+if brec.MelModel is None:
+
+    class _MelModel(brec.MelGroup):
+        """Represents a model record."""
+        typeSets = (
+            ('MODL','MODB','MODT'),
+            ('MOD2','MO2B','MO2T'),
+            ('MOD3','MO3B','MO3T'),
+            ('MOD4','MO4B','MO4T'),)
+
+        def __init__(self,attr='model',index=0):
+            """Initialize. Index is 0,2,3,4 for corresponding type id."""
+            types = self.__class__.typeSets[(0,index-1)[index>0]]
+            MelGroup.__init__(self,attr,
+                MelString(types[0],'modPath'),
+                MelStruct(types[1],'f','modb'), ### Bound Radius, Float
+                MelBase(types[2],'modt_p'),) ###Texture Files Hashes, Byte Array
+
+        def debug(self,on=True):
+            """Sets debug flag on self."""
+            for element in self.elements[:2]: element.debug(on)
+            return self
+
+    brec.MelModel = _MelModel
+
 import re
 import struct
 from ...bolt import Flags, sio, DataDict, struct_pack

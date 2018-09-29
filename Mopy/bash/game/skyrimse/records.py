@@ -23,16 +23,12 @@
 # =============================================================================
 
 """This module contains the skyrim SE record classes imported from skyrim"""
-from ...bolt import Flags, sio, DataDict, winNewLines, \
-    encode, struct_pack, struct_unpack
-from ...brec import MelRecord, MelStructs, \
-    MelObject, MelGroups, MelStruct, FID, MelGroup, MelString, \
-    MreLeveledListBase, MelSet, MelFid, MelNull, MelOptStruct, MelFids, \
-    MreHeaderBase, MelBase, MelUnicode, MelFidList, MelStructA, MreRecord, \
-    MreGmstBase, MelLString, MelCountedFidList, MelOptStructA, \
-    MelCountedFids, MelSortedFidList, MelStrings
+from ...bolt import Flags
+from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
+    FID, MelString, MelSet, MelFid, MelOptStruct, MelFids, MelBase, \
+    MelStructA, MelLString, MelCountedFidList
 from ...bass import null1, null2, null3, null4
-from ...exception import BoltError, ModError, ModSizeError, StateError
+from ...exception import ModSizeError
 from ..skyrim.records import MreActor, MelBipedObjectData, MelBounds, MelCoed, \
     MelColorN, MelComponents, MelCTDAHandler, MelConditions, MelDecalData, \
     MelDestructible, MelEffects, MreHasEffects, MelIcons, MelIcons2, \
