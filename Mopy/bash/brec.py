@@ -1144,7 +1144,7 @@ class MelFull0(MelString):
 
 #------------------------------------------------------------------------------
 # Hack for allowing record imports from parent games - set per game
-MelModel = None # type: MelGroup
+MelModel = None # type: type
 #------------------------------------------------------------------------------
 class MelOptStruct(MelStruct):
     """Represents an optional structure, where if values are null, is skipped."""

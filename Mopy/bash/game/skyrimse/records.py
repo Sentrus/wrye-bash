@@ -70,27 +70,7 @@ from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
     MelStructA, MelLString, MelCountedFidList
 from ...bass import null1, null2, null3, null4
 from ...exception import ModSizeError
-from ..skyrim.records import MreActor, MelBipedObjectData, MelBounds, MelCoed, \
-    MelColorN, MelComponents, MelCTDAHandler, MelConditions, MelDecalData, \
-    MelDestructible, MelEffects, MreHasEffects, MelIcons, MelIcons2, \
-    MelKeywords, MelMODS, MelOwnership, MelPerks, MelScrxen, \
-    MelString16, MelString32, MelVmad, MreHeader, MreAact, MreAchr, MreActi, \
-    MreAddn, MreAlch, MreAnio, MreAppa, MreArma, MreArmo, MreArto, \
-    MreAspc, MreAstp, MreAvif, MelBookData, MreBook, MreBptd, MreCams, \
-    MreCell, MreClas, MreClfm, MreClmt, MreCobj, MreColl, MreCont, MreCpth, \
-    MreCsty, MreDebr, MreDial, MreDlbr, MreDlvw, MreDobj, MreDoor, MreDual, \
-    MreEczn, MreEfsh, MreEnch, MreEqup, MreExpl, MreEyes, MreFact, MreFlor, \
-    MreFlst, MreFstp, MreFsts, MreFurn, MreGmst, MreGras, MreHazd, MreHdpt, \
-    MreIdle, MreIdlm, MreInfo, MreImad, MreImgs, MreIngr, MreIpctData, MreIpct, \
-    MreIpds, MreKeym, MreKywd, MreLcrt, MreLctn, MreLgtm, MreLigh, MreLscr, \
-    MreLeveledList, MreLvli, MreLvln, MreLvsp, MreMatt, \
-    MreMesg, MreMgef, MreMisc, MreMovt, MreMstt, MreMusc, MreMust, MreNavi, \
-    MreNavm, MelNpcCnto, MreNpc, MreOtft, MrePack, MrePerk, MreProj, MelItems, \
-    MreQust, MreRace, MreRefr, MreRegn, MreRela, MreRevb, MreRfct, MreScen, \
-    MreScrl, MreShou, MreSlgm, MreSmbn, MreSmen, MreSmqn, MreSnct, MreSndr, \
-    MelSopmData, MreSopm, MreSoun, MreSpel, MelSpgdData, MreSpgd, \
-    MreTact, MreTree, MreTxst, MreVtyp, MreWoop, MreWrld
-
+from ..skyrim.records import *
 
 #------------------------------------------------------------------------------
 # Updated for SSE -------------------------------------------------------------
