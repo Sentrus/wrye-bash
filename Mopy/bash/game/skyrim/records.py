@@ -25,15 +25,17 @@
 
 # Set MelModel in brec but only if unset, otherwise we are being imported from
 # skyrimse.records
-import brec
+from ... import brec
 if brec.MelModel is None:
     class _MelModel(brec.MelGroup):
         """Represents a model record."""
         # MODB and MODD are no longer used by TES5Edit
         typeSets = {'MODL': ('MODL', 'MODT', 'MODS'),
-            'MOD2': ('MOD2', 'MO2T', 'MO2S'), 'MOD3': ('MOD3', 'MO3T', 'MO3S'),
-            'MOD4': ('MOD4', 'MO4T', 'MO4S'), 'MOD5': ('MOD5', 'MO5T', 'MO5S'),
-            'DMDL': ('DMDL', 'DMDT', 'DMDS'), }
+                    'MOD2': ('MOD2', 'MO2T', 'MO2S'),
+                    'MOD3': ('MOD3', 'MO3T', 'MO3S'),
+                    'MOD4': ('MOD4', 'MO4T', 'MO4S'),
+                    'MOD5': ('MOD5', 'MO5T', 'MO5S'),
+                    'DMDL': ('DMDL', 'DMDT', 'DMDS'), }
 
         def __init__(self, attr='model', subType='MODL'):
             """Initialize."""
@@ -48,7 +50,7 @@ if brec.MelModel is None:
             return self
     brec.MelModel = _MelModel
 
-from brec import MelModel
+from ...brec import MelModel
 # Rest of imports
 import re
 import struct

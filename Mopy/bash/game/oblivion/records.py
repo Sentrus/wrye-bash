@@ -24,7 +24,7 @@
 """This module contains the oblivion record classes. Ripped from oblivion.py"""
 
 # Set brec mod elements to the ones for this game before importing anything else
-import brec
+from ... import brec
 
 if brec.MelModel is None:
 

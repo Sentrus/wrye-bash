@@ -21,8 +21,49 @@
 #  https://github.com/wrye-bash
 #
 # =============================================================================
+"""This module contains the skyrim SE record classes. The great majority are
+imported from skyrim, but only after setting MelModel to the SSE format."""
+from ... import brec
+if brec.MelModel is None:
+    class _MelModel(brec.MelGroup):
+        """Represents a model record."""
+        # MODB and MODD are no longer used by TES5Edit
+        typeSets = {'MODL': ('MODL', 'MODT', 'MODS'),
+                    'MOD2': ('MOD2', 'MO2T', 'MO2S'),
+                    'MOD3': ('MOD3', 'MO3T', 'MO3S'),
+                    'MOD4': ('MOD4', 'MO4T', 'MO4S'),
+                    'MOD5': ('MOD5', 'MO5T', 'MO5S'),
+                    'DMDL': ('DMDL', 'DMDT', 'DMDS'),
+                    }
 
-"""This module contains the skyrim SE record classes imported from skyrim"""
+        class MelModelHash(brec.MelBase):
+            """textureHashes are not used for loose files. There is never a
+            Bashed Patch, 0.bas. The record will be read if
+            present but no defaults are set and the record will not be
+            written."""
+            def loadData(self, record, ins, sub_type, size_, readId):
+                MelBase.loadData(self, record, ins, sub_type, size_, readId)
+            def getSlotsUsed(self):
+                return ()
+            def setDefault(self, record): return
+            def dumpData(self, record, out): return
+
+        def __init__(self, attr='model', subType='MODL'):
+            """Initialize."""
+            types = self.__class__.typeSets[subType]
+            brec.MelGroup.__init__(self, attr, MelString(types[0], 'modPath'),
+                                   self.__class__.MelModelHash(types[1],
+                                                               'textureHashes'),
+                                   MelMODS(types[2], 'alternateTextures'), )
+
+        def debug(self, on=True):
+            """Sets debug flag on self."""
+            for element in self.elements[:2]: element.debug(on)
+            return self
+    brec.MelModel = _MelModel
+
+from ...brec import MelModel
+# Rest of imports
 from ...bolt import Flags
 from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
     FID, MelString, MelSet, MelFid, MelOptStruct, MelFids, MelBase, \
@@ -53,44 +94,6 @@ from ..skyrim.records import MreActor, MelBipedObjectData, MelBounds, MelCoed, \
 
 #------------------------------------------------------------------------------
 # Updated for SSE -------------------------------------------------------------
-#------------------------------------------------------------------------------
-class MelModel(MelGroup):
-    """Represents a model record."""
-    # MODB and MODD are no longer used by TES5Edit
-    typeSets = {
-        'MODL': ('MODL','MODT','MODS'),
-        'MOD2': ('MOD2','MO2T','MO2S'),
-        'MOD3': ('MOD3','MO3T','MO3S'),
-        'MOD4': ('MOD4','MO4T','MO4S'),
-        'MOD5': ('MOD5','MO5T','MO5S'),
-        'DMDL': ('DMDL','DMDT','DMDS'),
-        }
-
-    class MelModelHash(MelBase):
-        """textureHashes are not used for loose files. There is never a
-        Bashed Patch, 0.bas. The record will be read if
-        present but no defaults are set and the record will not be written."""
-        def loadData(self, record, ins, sub_type, size_, readId):
-            MelBase.loadData(self, record, ins, sub_type, size_, readId)
-        def getSlotsUsed(self):
-            return ()
-        def setDefault(self,record): return
-        def dumpData(self,record,out): return
-
-    def __init__(self, attr='model', subType='MODL'):
-        """Initialize."""
-        types = self.__class__.typeSets[subType]
-        MelGroup.__init__(self,attr,
-            MelString(types[0],'modPath'),
-            MelModel.MelModelHash(types[1],'textureHashes'),
-            MelMODS(types[2],'alternateTextures'),
-            )
-
-    def debug(self,on=True):
-        """Sets debug flag on self."""
-        for element in self.elements[:2]: element.debug(on)
-        return self
-
 #------------------------------------------------------------------------------
 class MreAmmo(MelRecord):
     """Ammo record (arrows)"""

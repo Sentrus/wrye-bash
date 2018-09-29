@@ -26,7 +26,7 @@ __once__ only in game.fallout3.Fallout3GameInfo#init. No other game.records
 file must be imported till then."""
 
 # Set MelModel in brec but only if unset
-import brec
+from ... import brec
 if brec.MelModel is None:
     class _MelModel(brec.MelGroup):
         """Represents a model record."""
@@ -52,7 +52,7 @@ if brec.MelModel is None:
             return self
     brec.MelModel = _MelModel
 
-from brec import MelModel
+from ...brec import MelModel
 # Rest of imports
 import re
 import struct
