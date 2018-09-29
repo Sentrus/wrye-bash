@@ -21,10 +21,21 @@
 #  https://github.com/wrye-bash
 #
 # =============================================================================
-
 """This module contains the falloutnv record classes."""
-# Import records from fallout3 and override as needed
-from ..fallout3.records import *
+
+# Set MelModel in brec, in this case it's identical to the fallout 3 one
+from ... import brec
+if brec.MelModel is None:
+    from ..fallout3.records import MelModel as _MelModel
+    brec.MelModel = _MelModel
+
+from ...brec import MelModel
+# Rest of imports
+import itertools
+import struct
+from ...bolt import Flags, GPath
+from ..fallout3.records import MelScrxen, MelOwnership, MelDestructible, \
+    MelBipedFlags, MelEffects, MelConditions, MreHasEffects
 from ...brec import MelRecord, MelStructs, MelGroups, MelStruct, \
     FID, MelGroup, MelString, MelSet, MelFid, MelNull, MelOptStruct, MelFids, \
     MelBase, MelFidList, MelStructA, MreRecord, MreGmstBase, MelFull0, \

@@ -70,7 +70,8 @@ from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
     MelStructA, MelLString, MelCountedFidList
 from ...bass import null1, null2, null3, null4
 from ...exception import ModSizeError
-from ..skyrim.records import *
+# from ..skyrim.records import *
+from ..skyrim.records import MelMODS, MelBounds, MelDestructible, MelVmad
 
 #------------------------------------------------------------------------------
 # Updated for SSE -------------------------------------------------------------

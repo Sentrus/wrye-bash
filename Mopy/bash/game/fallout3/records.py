@@ -70,6 +70,18 @@ from ...exception import BoltError, ModError, ModSizeError, StateError
 
 from_iterable = itertools.chain.from_iterable
 
+# Since we are imported from falloutnv records let's not pollute its namespace
+__all__ = ['MreCpth', 'MreIdle', 'MreMesg', 'MrePack', 'MrePerk', 'MreQust',
+           'MreRegn', 'MreSpel', 'MreTerm', 'MreNpc', 'MreAddn', 'MreAnio',
+           'MreAvif', 'MreBook', 'MreBptd', 'MreCams', 'MreClas', 'MreClmt',
+           'MreCobj', 'MreCrea', 'MreDebr', 'MreDoor', 'MreEczn', 'MreEfsh',
+           'MreExpl', 'MreEyes', 'MreFlst', 'MreFurn', 'MreGras', 'MreHair',
+           'MreIdlm', 'MreImgs', 'MreIngr', 'MreIpds', 'MreLgtm', 'MreLtex',
+           'MreLvlc', 'MreLvli', 'MreLvln', 'MreMgef', 'MreMicn', 'MreMstt',
+           'MreNavi', 'MreNavm', 'MreNote', 'MrePwat', 'MreRads', 'MreRgdl',
+           'MreScol', 'MreScpt', 'MreTree', 'MreTxst', 'MreVtyp', 'MreWatr',
+           'MreWrld', 'MreAlch']
+
 #------------------------------------------------------------------------------
 # Record Elements    ----------------------------------------------------------
 #------------------------------------------------------------------------------
