@@ -267,8 +267,16 @@ class FalloutNVGameInfo(GameInfo):
             MreRcct, MreRcpe, MreRegn, MreRepu, MreSlpd, MreSoun, MreStat, \
             MreTact, MreWeap, MreWthr, MreAchr, MreAcre, MreCell, MreDial, \
             MreGmst, MreInfo, MrePgre, MrePmis, MreRefr, MreHeader
-        # then from fallout 3 what's needed only
-        from ..fallout3.records import *
+        # then from fallout3.records
+        from ..fallout3.records import MreCpth, MreIdle, MreMesg, MrePack, \
+            MrePerk, MreQust, MreRegn, MreSpel, MreTerm, MreNpc, MreAddn, \
+            MreAnio, MreAvif, MreBook, MreBptd, MreCams, MreClas, MreClmt, \
+            MreCobj, MreCrea, MreDebr, MreDoor, MreEczn, MreEfsh, MreExpl, \
+            MreEyes, MreFlst, MreFurn, MreGras, MreHair, MreIdlm, MreImgs, \
+            MreIngr, MreIpds, MreLgtm, MreLtex, MreLvlc, MreLvli, MreLvln, \
+            MreMgef, MreMicn, MreMstt, MreNavi, MreNavm, MreNote, MrePwat, \
+            MreRads, MreRgdl, MreScol, MreScpt, MreTree, MreTxst, MreVtyp, \
+            MreWatr, MreWrld, MreAlch
         # Old Mergeable from Valda's version
         # MreActi, MreAlch, MreAloc, MreAmef, MreAmmo, MreAnio, MreAppa,
         # MreArma, MreArmo, MreAspc, MreAvif, MreBook, MreBptd, MreBsgn,
