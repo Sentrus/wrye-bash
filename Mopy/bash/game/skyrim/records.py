@@ -22,10 +22,25 @@
 #
 # =============================================================================
 """This module contains the skyrim record classes."""
+import itertools
+import re
+import struct
 
+from .constants import allConditions, fid1Conditions, fid2Conditions, \
+    fid5Conditions
+from ... import brec
+from ... import bush
+from ...bass import null1, null2, null3, null4
+from ...bolt import Flags, sio, DataDict, winNewLines, encode, struct_pack, \
+    struct_unpack
+from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
+    FID, MelGroup, MelString, MreLeveledListBase, MelSet, MelFid, MelNull, \
+    MelOptStruct, MelFids, MreHeaderBase, MelBase, MelUnicode, MelFidList, \
+    MelStructA, MreRecord, MreGmstBase, MelLString, MelCountedFidList, \
+    MelOptStructA, MelCountedFids, MelSortedFidList, MelStrings
+from ...exception import BoltError, ModError, ModSizeError, StateError
 # Set MelModel in brec but only if unset, otherwise we are being imported from
 # skyrimse.records
-from ... import brec
 if brec.MelModel is None:
     class _MelModel(brec.MelGroup):
         """Represents a model record."""
@@ -49,25 +64,7 @@ if brec.MelModel is None:
             for element in self.elements[:2]: element.debug(on)
             return self
     brec.MelModel = _MelModel
-
 from ...brec import MelModel
-# Rest of imports
-import re
-import struct
-import itertools
-from ...bolt import Flags, sio, DataDict, winNewLines, \
-    encode, struct_pack, struct_unpack
-from ...brec import MelRecord, MelStructs, \
-    MelObject, MelGroups, MelStruct, FID, MelGroup, MelString, \
-    MreLeveledListBase, MelSet, MelFid, MelNull, MelOptStruct, MelFids, \
-    MreHeaderBase, MelBase, MelUnicode, MelFidList, MelStructA, MreRecord, \
-    MreGmstBase, MelLString, MelCountedFidList, MelOptStructA, \
-    MelCountedFids, MelSortedFidList, MelStrings
-from ...bass import null1, null2, null3, null4
-from ... import bush
-from constants import allConditions, fid1Conditions, fid2Conditions, \
-    fid5Conditions
-from ...exception import BoltError, ModError, ModSizeError, StateError
 
 from_iterable = itertools.chain.from_iterable
 

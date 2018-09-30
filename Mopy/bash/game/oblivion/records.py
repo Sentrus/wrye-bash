@@ -22,10 +22,20 @@
 #
 # =============================================================================
 """This module contains the oblivion record classes. Ripped from oblivion.py"""
-
-# Set brec mod elements to the ones for this game before importing anything else
+import re
+import struct
+from .constants import allConditions, fid1Conditions, fid2Conditions
 from ... import brec
-
+from ...bass import null1, null2, null3, null4
+from ...bolt import Flags, sio, DataDict, struct_pack
+from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
+    FID, MelGroup, MelString, MreLeveledListBase, MelSet, MelFid, MelNull, \
+    MelOptStruct, MelFids, MreHeaderBase, MelBase, MelUnicode, MelXpci, \
+    MelFull0, MelFidList, MelStructA, MelStrings, MreRecord, MreGmstBase, \
+    MelTuple
+from ...bush import genericAVEffects, mgef_school, mgef_basevalue, actorValues
+from ...exception import BoltError, ModError, ModSizeError, StateError
+# Set brec MelModel to the one for Oblivion
 if brec.MelModel is None:
 
     class _MelModel(brec.MelGroup):
@@ -51,18 +61,7 @@ if brec.MelModel is None:
 
     brec.MelModel = _MelModel
 
-import re
-import struct
-from ...bolt import Flags, sio, DataDict, struct_pack
-from ...brec import MelRecord, MelStructs, \
-    MelObject, MelGroups, MelStruct, FID, MelGroup, MelString, \
-    MreLeveledListBase, MelSet, MelFid, MelNull, MelOptStruct, MelFids, \
-    MreHeaderBase, MelBase, MelUnicode, MelXpci, MelModel, MelFull0, \
-    MelFidList, MelStructA, MelStrings, MreRecord, MreGmstBase, MelTuple
-from ...bass import null1, null2, null3, null4
-from ...bush import genericAVEffects, mgef_school, mgef_basevalue, actorValues
-from constants import allConditions, fid1Conditions, fid2Conditions
-from ...exception import BoltError, ModError, ModSizeError, StateError
+from ...brec import MelModel
 
 #------------------------------------------------------------------------------
 # Record Elements    ----------------------------------------------------------

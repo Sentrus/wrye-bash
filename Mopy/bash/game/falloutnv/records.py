@@ -22,26 +22,18 @@
 #
 # =============================================================================
 """This module contains the falloutnv record classes."""
-
-# Set MelModel in brec, in this case it's identical to the fallout 3 one
-from ... import brec
-if brec.MelModel is None:
-    from ..fallout3.records import MelModel as _MelModel
-    brec.MelModel = _MelModel
-
-from ...brec import MelModel
-# Rest of imports
 import itertools
 import struct
-from ...bolt import Flags, GPath
+# Set MelModel in brec, in this case it's identical to the fallout 3 one
 from ..fallout3.records import MelScrxen, MelOwnership, MelDestructible, \
     MelBipedFlags, MelEffects, MelConditions, MreHasEffects
-from ...brec import MelRecord, MelStructs, MelGroups, MelStruct, \
-    FID, MelGroup, MelString, MelSet, MelFid, MelNull, MelOptStruct, MelFids, \
+from ...bass import null1, null2, null3, null4
+from ...bolt import Flags, GPath
+from ...brec import MelModel # set in Mopy/bash/game/fallout3/records.py
+from ...brec import MelRecord, MelStructs, MelGroups, MelStruct, FID, \
+    MelGroup, MelString, MelSet, MelFid, MelNull, MelOptStruct, MelFids, \
     MelBase, MelFidList, MelStructA, MreRecord, MreGmstBase, MelFull0, \
     MreHeaderBase, MelUnicode
-from ...bass import null1, null2, null3, null4
-from ... import bush
 from ...exception import ModError, ModSizeError
 
 from_iterable = itertools.chain.from_iterable

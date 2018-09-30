@@ -24,8 +24,15 @@
 """This module contains the skyrim SE record classes. The great majority are
 imported from skyrim, but only after setting MelModel to the SSE format."""
 from ... import brec
+from ...bass import null1, null2, null3, null4
+from ...bolt import Flags
+from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
+    FID, MelString, MelSet, MelFid, MelOptStruct, MelFids, MelBase, MelGroup, \
+    MelStructA, MelLString, MelCountedFidList
+from ...exception import ModSizeError
+# Set brec.MelModel to the skyrimse one - do not import from skyrim.records yet
 if brec.MelModel is None:
-    class _MelModel(brec.MelGroup):
+    class _MelModel(MelGroup):
         """Represents a model record."""
         # MODB and MODD are no longer used by TES5Edit
         typeSets = {'MODL': ('MODL', 'MODT', 'MODS'),
@@ -36,7 +43,7 @@ if brec.MelModel is None:
                     'DMDL': ('DMDL', 'DMDT', 'DMDS'),
                     }
 
-        class MelModelHash(brec.MelBase):
+        class MelModelHash(MelBase):
             """textureHashes are not used for loose files. There is never a
             Bashed Patch, 0.bas. The record will be read if
             present but no defaults are set and the record will not be
@@ -51,7 +58,7 @@ if brec.MelModel is None:
         def __init__(self, attr='model', subType='MODL'):
             """Initialize."""
             types = self.__class__.typeSets[subType]
-            brec.MelGroup.__init__(self, attr, MelString(types[0], 'modPath'),
+            MelGroup.__init__(self, attr, MelString(types[0], 'modPath'),
                                    self.__class__.MelModelHash(types[1],
                                                                'textureHashes'),
                                    MelMODS(types[2], 'alternateTextures'), )
@@ -61,16 +68,8 @@ if brec.MelModel is None:
             for element in self.elements[:2]: element.debug(on)
             return self
     brec.MelModel = _MelModel
-
 from ...brec import MelModel
-# Rest of imports
-from ...bolt import Flags
-from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
-    FID, MelString, MelSet, MelFid, MelOptStruct, MelFids, MelBase, \
-    MelStructA, MelLString, MelCountedFidList
-from ...bass import null1, null2, null3, null4
-from ...exception import ModSizeError
-# from ..skyrim.records import *
+# Now we can import from parent game records file
 from ..skyrim.records import MelMODS, MelBounds, MelDestructible, MelVmad
 
 #------------------------------------------------------------------------------

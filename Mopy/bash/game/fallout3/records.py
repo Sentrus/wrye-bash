@@ -24,9 +24,21 @@
 """This module contains the fallout3 record classes. You must import from it
 __once__ only in game.fallout3.Fallout3GameInfo#init. No other game.records
 file must be imported till then."""
-
-# Set MelModel in brec but only if unset
+import itertools
+import re
+import struct
+from operator import attrgetter
 from ... import brec
+from ... import bush
+from ...bass import null1, null2, null3, null4
+from ...bolt import Flags, sio, DataDict, encode, GPath, struct_unpack, \
+    struct_pack
+from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
+    FID, MelGroup, MelString, MelSet, MelFid, MelNull, MelOptStruct, MelFids, \
+    MreHeaderBase, MelBase, MelUnicode, MelFidList, MelStructA, MreRecord, \
+    MreGmstBase, MelStrings, MelFull0, MelTuple
+from ...exception import BoltError, ModError, ModSizeError, StateError
+# Set MelModel in brec but only if unset
 if brec.MelModel is None:
     class _MelModel(brec.MelGroup):
         """Represents a model record."""
@@ -53,20 +65,6 @@ if brec.MelModel is None:
     brec.MelModel = _MelModel
 
 from ...brec import MelModel
-# Rest of imports
-import re
-import struct
-import itertools
-from ...bolt import Flags, sio, DataDict, encode, GPath, struct_unpack, \
-    struct_pack
-from ...brec import MelRecord, MelStructs, MelObject, MelGroups, MelStruct, \
-    FID, MelGroup, MelString, MelSet, MelFid, MelNull, MelOptStruct, MelFids, \
-    MreHeaderBase, MelBase, MelUnicode, MelFidList, MelStructA, MreRecord, \
-    MreGmstBase, MelStrings, MelFull0, MelTuple
-from ...bass import null1, null2, null3, null4
-from ... import bush
-from operator import attrgetter
-from ...exception import BoltError, ModError, ModSizeError, StateError
 
 from_iterable = itertools.chain.from_iterable
 
